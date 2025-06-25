@@ -4,13 +4,14 @@ on:
   push:
     paths:
       - 'terraform-static-site/**'
+      - 'my-static-site/**'
   pull_request:
     paths:
       - 'terraform-static-site/**'
 
 jobs:
   terraform:
-    name: Terraform Format and Validate
+    name: Terraform Format, Validate, and Deploy
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -31,3 +32,20 @@ jobs:
 
       - name: Terraform Validate
         run: terraform validate
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Upload site content to S3
+        run: |
+          aws s3 cp ../my-static-site/ s3://static-site-dev-bucket-2025/ --recursive
+
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id E17TMQTDERA31A \
+            --paths "/*"
