@@ -1,0 +1,33 @@
+name: Terraform CI
+
+on:
+  push:
+    paths:
+      - 'terraform-static-site/**'
+  pull_request:
+    paths:
+      - 'terraform-static-site/**'
+
+jobs:
+  terraform:
+    name: Terraform Format and Validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform-static-site
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        run: terraform validate
