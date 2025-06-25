@@ -1,5 +1,12 @@
-# Terraform state and plan files
+# Ignore Terraform files
 *.tfstate
 *.tfstate.backup
-*.tfplan
 .terraform/
+.crash/
+.terraform.lock.hcl
+
+# Ignore sensitive credentials
+*.pem
+*.key
+.env
+.aws/
