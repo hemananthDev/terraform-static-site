@@ -1,6 +1,5 @@
 resource "aws_s3_bucket" "static_site" {
   bucket = "${var.project_name}-${var.env}-bucket-2025"
-  acl    = "public-read"
 
   website {
     index_document = "index.html"
@@ -13,6 +12,16 @@ resource "aws_s3_bucket" "static_site" {
   }
 }
 
+# 👇 Allow public access by disabling default blocks
+resource "aws_s3_bucket_public_access_block" "public_access" {
+  bucket                  = aws_s3_bucket.static_site.id
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+}
+
+# 👇 Public Read Bucket Policy
 data "aws_iam_policy_document" "public_read" {
   statement {
     actions   = ["s3:GetObject"]
@@ -29,10 +38,12 @@ resource "aws_s3_bucket_policy" "allow_public_access" {
   policy = data.aws_iam_policy_document.public_read.json
 }
 
+# 👇 CloudFront Distribution
 resource "aws_cloudfront_distribution" "cdn" {
   origin {
     domain_name = aws_s3_bucket.static_site.website_endpoint
     origin_id   = "S3Origin"
+
     custom_origin_config {
       http_port              = 80
       https_port             = 443
